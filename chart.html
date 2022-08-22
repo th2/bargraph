@@ -1,0 +1,82 @@
+<html>
+    <head>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js" integrity="sha512-ElRFoEQdI5Ht6kZvyzXhYG9NqjtkmlkfYk0wr6wHxU9JEHakS7UJZNeml5ALk+8IKlU6jDgMabC3vkumRokgJA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    </head>
+    <body>
+        <h1><span id="toggleRelativeAbsolute">Relative</span> Checkins since
+            <button onclick="setTimeframe(new Date(new Date().getFullYear() - 1,new Date().getMonth(), new Date().getDate()).toISOString())">one year</button>
+            <button onclick="setTimeframe(new Date(new Date().getFullYear(),new Date().getMonth() - 1, new Date().getDate()).toISOString())">one month</button>
+        </h1>
+        <canvas id="mainchart" width="400" height="200"></canvas>
+        <script>
+            const ctx = document.getElementById('mainchart').getContext('2d')
+            var fulldatasets = []
+            var starttime = '2020-02-23T22:00:00.000Z'
+            var useRelativeValues = true
+            const chartdata = { datasets: [] }
+            const mainchart = new Chart(ctx, {
+                type: 'line',
+                data: chartdata,
+                options: {
+                    scales: {
+                        x: {
+                            type: 'time'
+                        },
+                        y: {
+                            beginAtZero: true,
+                            display: true,
+                            text: 'value'
+                        }
+                    }
+                }
+            })
+
+            function loadData(){
+                fetch('/data')
+                .then((response) => response.json())
+                .then((data) => { fulldatasets = data; displayData() })
+            }
+
+            function displayData(){
+                fulldatasets.forEach(fullDataset => {
+                    var datasetToUpdate = chartdata.datasets.find(existingDataset => existingDataset.label === fullDataset.label)
+                    if (datasetToUpdate == undefined) {
+                        chartdata.datasets.push({
+                            label: fullDataset.label,
+                            backgroundColor: fullDataset.backgroundColor,
+                            borderColor: fullDataset.backgroundColor,
+                            data: getRelevantData(fullDataset.data),
+                            stepped: fullDataset.stepped
+                        })
+                    } else {
+                        datasetToUpdate.data = getRelevantData(fullDataset.data)
+                    }
+                })
+                mainchart.update()
+            }
+
+            function getRelevantData(data) {
+                var result = data.filter(data => data.x > starttime)
+                if (useRelativeValues) {
+                    var count = 0
+                    result = result.map(value => {return { x:value.x, y:++count }})
+                }
+                return result
+            }
+
+            function setTimeframe(newStarttime) {
+                starttime = newStarttime
+                displayData()
+            }
+
+            loadData()
+
+            document.getElementById('toggleRelativeAbsolute').onclick = (event) => {
+                useRelativeValues = !useRelativeValues
+                event.srcElement.innerHTML = useRelativeValues ? 'Relative' : 'Absolute'
+                displayData()
+            }
+        </script>
+    </body>
+</html>
