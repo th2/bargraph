@@ -7,6 +7,8 @@
     <body>
         <h1 id="title"><span id="toggleRelativeAbsolute">Relative</span> Checkins since
             <input type="date" id="starttimeInput" value="2020-02-23" min="2019-01-01" onchange="setTimeframe(new Date(this.value).toISOString())">
+            <button onclick="{var d=new Date(starttime);d.setDate(d.getDate() - 1);setTimeframe(d.toISOString())}">&#60;</button>
+            <button onclick="{var d=new Date(starttime);d.setDate(d.getDate() + 1);setTimeframe(d.toISOString())}">&#62;</button>
             <button onclick="setTimeframe(new Date(new Date().getFullYear() - 1,new Date().getMonth(), new Date().getDate()).toISOString())">year</button>
             <button onclick="setTimeframe(new Date(new Date().getFullYear(),new Date().getMonth() - 1, new Date().getDate()).toISOString())">month</button>
         </h1>

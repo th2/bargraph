@@ -9,15 +9,13 @@ module.exports.run = (users) => {
             let feed = await parser.parseURL(user.updateUrl)
             feed.items.reverse().forEach(item => {
                 var beer_name = item.title.substring(item.title.indexOf('is drinking a') + 14, item.title.indexOf(' by  ')).trim()
-                var brewery_name = item.title.substring(item.title.indexOf(' by  ') + 5, item.title.indexOf(' at ')).trim()
-                var location = item.title.substring(item.title.indexOf(' at ') + 4).trim()
+                var brewery_name = item.title.substring(item.title.indexOf(' by  ') + 5).split(' at ')[0].trim()
                 var foundInCheckins = previousCheckins.some(previousCheckin => beer_name === previousCheckin.beer_name && brewery_name === previousCheckin.brewery_name)
                 if (!foundInCheckins) {
-                    console.log('new checkin found: ' + item.isoDate + '|' + beer_name + '|' + brewery_name  + '|' + location)
+                    console.log('new checkin found: ' + item.isoDate + '|' + beer_name + '|' + brewery_name)
                     previousCheckins.unshift({
                         "beer_name": beer_name,
                         "brewery_name": brewery_name,
-                        "location": location,
                         "created_at": item.isoDate
                     })
                 }
