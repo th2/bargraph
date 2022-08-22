@@ -4,9 +4,10 @@
         <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     </head>
     <body>
-        <h1><span id="toggleRelativeAbsolute">Relative</span> Checkins since
-            <button onclick="setTimeframe(new Date(new Date().getFullYear() - 1,new Date().getMonth(), new Date().getDate()).toISOString())">one year</button>
-            <button onclick="setTimeframe(new Date(new Date().getFullYear(),new Date().getMonth() - 1, new Date().getDate()).toISOString())">one month</button>
+        <h1 id="title"><span id="toggleRelativeAbsolute">Relative</span> Checkins since
+            <input type="date" id="starttimeInput" value="2020-02-23" min="2019-01-01" onchange="setTimeframe(new Date(this.value).toISOString())">
+            <button onclick="setTimeframe(new Date(new Date().getFullYear() - 1,new Date().getMonth(), new Date().getDate()).toISOString())">year</button>
+            <button onclick="setTimeframe(new Date(new Date().getFullYear(),new Date().getMonth() - 1, new Date().getDate()).toISOString())">month</button>
         </h1>
         <canvas id="mainchart" width="400" height="200"></canvas>
         <script>
@@ -32,13 +33,31 @@
                 }
             })
 
-            function loadData(){
+            function initialize() {
                 fetch('/data')
                 .then((response) => response.json())
                 .then((data) => { fulldatasets = data; displayData() })
+
+                fetch('/users')
+                .then((response) => response.json())
+                .then((users) => users.forEach(user => makeUserButton(user)))
+
+                document.getElementById('toggleRelativeAbsolute').onclick = (event) => {
+                    useRelativeValues = !useRelativeValues
+                    event.srcElement.innerHTML = useRelativeValues ? 'Relative' : 'Absolute'
+                    displayData()
+                }
             }
 
-            function displayData(){
+            function makeUserButton(user) {
+                var btn = document.createElement('button')
+                btn.innerText = user.displayname
+                btn.onclick = () => setTimeframe(user.startDate)
+
+                document.getElementById('title').appendChild(btn)
+            }
+
+            function displayData() {
                 fulldatasets.forEach(fullDataset => {
                     var datasetToUpdate = chartdata.datasets.find(existingDataset => existingDataset.label === fullDataset.label)
                     if (datasetToUpdate == undefined) {
@@ -67,16 +86,11 @@
 
             function setTimeframe(newStarttime) {
                 starttime = newStarttime
+                document.getElementById('starttimeInput').value = newStarttime.split('T', 1)[0]
                 displayData()
             }
 
-            loadData()
-
-            document.getElementById('toggleRelativeAbsolute').onclick = (event) => {
-                useRelativeValues = !useRelativeValues
-                event.srcElement.innerHTML = useRelativeValues ? 'Relative' : 'Absolute'
-                displayData()
-            }
+            initialize()
         </script>
     </body>
 </html>
