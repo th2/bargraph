@@ -1,0 +1,31 @@
+body {
+    background-color: #2D2D2D;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+h1 {
+    font-size: 1em;
+}
+
+input {
+    background-color: #2D2D2D;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 1em;
+    font-weight: bold;
+    border-width: 0px;
+}
+
+::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+}
+
+button {
+    background-color: #2D2D2D;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 1em;
+    font-weight: bold;
+    border-width: 0px;
+}

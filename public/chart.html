@@ -2,6 +2,7 @@
     <head>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js" integrity="sha512-ElRFoEQdI5Ht6kZvyzXhYG9NqjtkmlkfYk0wr6wHxU9JEHakS7UJZNeml5ALk+8IKlU6jDgMabC3vkumRokgJA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
         <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+        <link rel="stylesheet" href="style.css">
     </head>
     <body>
         <h1 id="title"><span id="toggleRelativeAbsolute">Relative</span> Checkins since
@@ -9,7 +10,7 @@
             <button onclick="setTimeframe(new Date(new Date().getFullYear() - 1,new Date().getMonth(), new Date().getDate()).toISOString())">year</button>
             <button onclick="setTimeframe(new Date(new Date().getFullYear(),new Date().getMonth() - 1, new Date().getDate()).toISOString())">month</button>
         </h1>
-        <canvas id="mainchart" width="400" height="200"></canvas>
+        <canvas id="mainchart" width="400" height="150"></canvas>
         <script>
             const ctx = document.getElementById('mainchart').getContext('2d')
             var fulldatasets = []
@@ -53,7 +54,6 @@
                 var btn = document.createElement('button')
                 btn.innerText = user.displayname
                 btn.onclick = () => setTimeframe(user.startDate)
-
                 document.getElementById('title').appendChild(btn)
             }
 
