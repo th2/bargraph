@@ -3,11 +3,13 @@ const app = express()
 const path = require('path')
 const fs = require('fs')
 const users = require('./data/users.json')
+const updater = require('./updater-rss.js')
 
 app.get('/', (req, res) => res.sendFile('public/chart.html', {root: path.join(__dirname)}))
 app.get('/users', (req, res) => res.send(users))
 app.get('/checkins/*', (req, res) => res.send(getCheckins(req.params[0])))
 app.get('/data', (req, res) => res.send(getData()))
+app.get('/update', (req, res) => res.send(updater.run(users)))
 app.use('/', express.static('public'))
 app.listen(8888)
 
