@@ -19,7 +19,8 @@ function getCheckins(username) {
 
 function getData() {
     return users.map(user => {
-        const uniqueCheckins = JSON.parse(fs.readFileSync(`data/unique-${user.username}.json`, 'utf8')).reverse()
+        const uniqueCheckins = JSON.parse(fs.readFileSync(`data/unique-${user.username}.json`, 'utf8'))
+            .sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
         var count = 0
         const dataCheckins = uniqueCheckins
             .map(checkin => {return { x:formatDate(checkin.created_at), y:++count }})
