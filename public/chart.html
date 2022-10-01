@@ -18,7 +18,7 @@
         <script>
             const ctx = document.getElementById('mainchart').getContext('2d')
             var fulldatasets = []
-            var starttime = '2020-02-23T22:00:00.000Z'
+            var starttime = new Date(new Date().getFullYear(),new Date().getMonth() - 1, new Date().getDate()).toISOString()
             var useRelativeValues = true
             const chartdata = { datasets: [] }
             const mainchart = new Chart(ctx, {
