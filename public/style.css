@@ -1,11 +1,39 @@
-body {
+html, body {
     background-color: #2D2D2D;
     color: white;
     font-family: Arial, Helvetica, sans-serif;
+    height: 100%;
+    margin: 0;
+}
+
+.box {
+    display: flex;
+    flex-flow: column;
+    height: 100%;
+}
+
+.box .row {
+    border: 0px;
+}
+  
+.box .row.header {
+    flex: 0 1 auto; /* flex-grow: 0, flex-shrink: 1, flex-basis: auto */
+}
+
+.box .row.content {
+    flex: 1 1 auto;
+    padding-left: 1em;
+    padding-right: 1em;
+}
+
+.box .row.footer {
+    flex: 0 1 40px;
 }
 
 h1 {
-    font-size: 1em;
+    margin: 2em;
+    font-size: 3vw;
+    line-height: 200%;
 }
 
 input {
