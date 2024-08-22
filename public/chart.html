@@ -1,5 +1,6 @@
 <html>
     <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍻</text></svg>">
         <title>🍺</title>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js" integrity="sha512-ElRFoEQdI5Ht6kZvyzXhYG9NqjtkmlkfYk0wr6wHxU9JEHakS7UJZNeml5ALk+8IKlU6jDgMabC3vkumRokgJA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -17,8 +18,8 @@
                     <button onclick="setTimeframe(new Date(new Date().getFullYear(),new Date().getMonth() - 1, new Date().getDate()).toISOString())">month</button>
                 </h1>
             </header>
-            <section class="row content"><canvas id="mainchart"></canvas>
-            </section>
+            <section class="row content"><canvas id="mainchart"></canvas></section>
+            <section class="row content"><span class="footer">data update: <span id="lastupdate">loading...</span> <a href="/update">&circlearrowright;</a> | <a href="https://github.com/th2/bargraph">Code on GitHub</a></span></section>
         </div>
         <script>
             const ctx = document.getElementById('mainchart').getContext('2d')
@@ -53,6 +54,17 @@
                 fetch('/users')
                 .then((response) => response.json())
                 .then((users) => users.forEach(user => makeUserButton(user)))
+
+                fetch('/lastupdate')
+                .then((response) => response.text())
+                .then((data) => { 
+                    var dateLastUpdate = new Date(data)
+                    var dateNow = new Date()
+                    document.getElementById('lastupdate').innerText = dateLastUpdate.toISOString().split('.')[0].replace('T', ' ')
+                    if (dateNow - dateLastUpdate > 1000 * 60 * 60 * 24) {
+                        fetch('/update')
+                    }
+                })
 
                 document.getElementById('toggleRelativeAbsolute').onclick = (event) => {
                     useRelativeValues = !useRelativeValues

@@ -6,6 +6,10 @@ html, body {
     margin: 0;
 }
 
+a {
+    color: white;
+}
+
 .box {
     display: flex;
     flex-flow: column;
@@ -32,7 +36,7 @@ html, body {
 
 h1 {
     margin: 2em;
-    font-size: 3vw;
+    font-size: 1em;
     line-height: 200%;
 }
 
@@ -56,4 +60,8 @@ button {
     font-size: 1em;
     font-weight: bold;
     border-width: 0px;
+}
+
+.footer {
+    float: right;
 }

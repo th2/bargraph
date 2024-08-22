@@ -10,6 +10,7 @@ app.get('/users', (req, res) => res.send(users))
 app.get('/checkins/*', (req, res) => res.send(getCheckins(req.params[0])))
 app.get('/data', (req, res) => res.send(getData()))
 app.get('/update', (req, res) => res.send(updater.run(users)))
+app.get('/lastupdate', (req, res) => res.sendFile('data/lastupdate.json', {root: path.join(__dirname)}, (err) => {if (err) res.send('1970-01-01T00:00:00Z') }))
 app.use('/', express.static('public'))
 app.listen(8888)
 
