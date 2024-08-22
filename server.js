@@ -4,7 +4,10 @@ const path = require('path')
 const fs = require('fs')
 const users = require('./data/users.json')
 const updater = require('./updater-rss.js')
+const logger = require('./logger')
+const config = require('./config.json')
 
+app.use(logger.visit())
 app.get('/', (req, res) => res.sendFile('public/chart.html', {root: path.join(__dirname)}))
 app.get('/users', (req, res) => res.send(users))
 app.get('/checkins/*', (req, res) => res.send(getCheckins(req.params[0])))
@@ -12,7 +15,8 @@ app.get('/data', (req, res) => res.send(getData()))
 app.get('/update', (req, res) => res.send(updater.run(users)))
 app.get('/lastupdate', (req, res) => res.sendFile('data/lastupdate.json', {root: path.join(__dirname)}, (err) => {if (err) res.send('1970-01-01T00:00:00Z') }))
 app.use('/', express.static('public'))
-app.listen(8888)
+app.use(logger.error())
+app.listen(config.port)
 
 function getCheckins(username) {
     return 'todo'
