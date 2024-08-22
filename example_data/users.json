@@ -1,0 +1,16 @@
+[
+    {
+        "displayname": "A",
+        "username": "YOUR-USERNAME",
+        "color": "#A5C9CA",
+        "startDate": "2020-01-01T00:00:00.000Z",
+        "updateUrl": "https://untappd.com/rss/user/YOUR-USERNAME?key=YOUR-RSS-KEY"
+    },
+    {
+        "displayname": "B",
+        "username": "OTHER-USERNAME",
+        "color": "#395B64",
+        "startDate": "2020-01-01T00:00:00.000Z",
+        "updateUrl": "https://untappd.com/rss/user/OTHER-USERNAME?key=OTHER-RSS-KEY"
+    }
+]
