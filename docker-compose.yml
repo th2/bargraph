@@ -1,0 +1,14 @@
+services:
+  chat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: bargraph
+    container_name: bargraph
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - ${PORT}:${PORT}
+    volumes:
+      - ./log:/usr/src/app/log
+    command: node server.js
