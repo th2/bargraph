@@ -1,4 +1,5 @@
 const express = require('express')
+const cloudflare = require('cloudflare-express')
 const app = express()
 const path = require('path')
 const fs = require('fs')
@@ -6,6 +7,7 @@ const users = require('./data/users.json')
 const updater = require('./updater-rss.js')
 const logger = require('./logger')
 
+app.use(cloudflare.restore({update_on_start:true}))
 app.use(logger.visit())
 app.get('/', (req, res) => res.sendFile('public/chart.html', {root: path.join(__dirname)}))
 app.get('/users', (req, res) => res.send(users))
