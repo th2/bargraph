@@ -10,7 +10,7 @@
     <body>
         <div class="box">
             <header class="row header">
-                <h1 id="title"><span id="toggleRelativeAbsolute">Relative</span> Checkins since
+                <h1 id="title"><span id="toggleRelativeAbsolute">Relative</span> <span id="toggleCheckinsDistance">Checkins</span> since
                     <input type="date" id="starttimeInput" value="2020-02-23" min="2019-01-01" onchange="setTimeframe(new Date(this.value).toISOString())">
                     <button onclick="{var d=new Date(starttime);d.setDate(d.getDate() - 1);setTimeframe(d.toISOString())}">&#60;</button>
                     <button onclick="{var d=new Date(starttime);d.setDate(d.getDate() + 1);setTimeframe(d.toISOString())}">&#62;</button>
@@ -24,8 +24,10 @@
         <script>
             const ctx = document.getElementById('mainchart').getContext('2d')
             var fulldatasets = []
+            var fulldatasetsDistance = []
             var starttime = new Date(new Date().getFullYear(),new Date().getMonth() - 1, new Date().getDate()).toISOString()
             var useRelativeValues = true
+            var useCheckins = true
             const chartdata = { datasets: [] }
             const mainchart = new Chart(ctx, {
                 type: 'line',
@@ -40,7 +42,12 @@
                         y: {
                             beginAtZero: true,
                             display: true,
-                            text: 'value'
+                            text: 'value',
+                            grid: {
+                                color: (context) => {
+                                    if (context.tick.value === 0) return 'white'
+                                }
+                            }
                         }
                     }
                 }
@@ -50,6 +57,10 @@
                 fetch('/data')
                 .then((response) => response.json())
                 .then((data) => { fulldatasets = data; displayData() })
+
+                fetch('/dataDistance')
+                .then((response) => response.json())
+                .then((data) => { fulldatasetsDistance = data; })
 
                 fetch('/users')
                 .then((response) => response.json())
@@ -69,6 +80,12 @@
                 document.getElementById('toggleRelativeAbsolute').onclick = (event) => {
                     useRelativeValues = !useRelativeValues
                     event.srcElement.innerHTML = useRelativeValues ? 'Relative' : 'Absolute'
+                    displayData()
+                }
+
+                document.getElementById('toggleCheckinsDistance').onclick = (event) => {
+                    useCheckins = !useCheckins
+                    event.srcElement.innerHTML = useCheckins ? 'Checkins' : 'Distance'
                     displayData()
                 }
             }
@@ -100,9 +117,15 @@
 
             function getRelevantData(data) {
                 var result = data.filter(data => data.x > starttime)
-                if (useRelativeValues) {
-                    var count = 0
-                    result = result.map(value => {return { x:value.x, y:++count }})
+                if (useCheckins) {
+                    if (useRelativeValues) {
+                        var count = 0
+                        result = result.map(value => {return { x:value.x, y:++count }})
+                    }
+                } else {
+                    return fulldatasetsDistance
+                        .filter(data => data.date > starttime)
+                        .map(data => {return { x:data.date, y:data.distance }})
                 }
                 return result
             }
