@@ -1,13 +1,13 @@
 const fs = require('fs');
 const moment = require('moment');
 
-module.exports.run = (users) => {
+module.exports.run = (users, callback) => {
     if (users.length < 2) return 'less than 2 users';
     const checkins0 = JSON.parse(fs.readFileSync(`data/unique-${users[0].username}.json`, 'utf8'));
     const checkins1 = JSON.parse(fs.readFileSync(`data/unique-${users[1].username}.json`, 'utf8'));
     
     const currentDate = moment(users[0].startDate);
-    const endDate = moment();
+    const endDate = moment().add(1, 'day');
 
     var result = [];
     var prevCount = 0;
@@ -26,7 +26,8 @@ module.exports.run = (users) => {
     }
     
     fs.writeFileSync(`data/distance.json`, JSON.stringify(result));
-    return 'ok. <a href="/">back</a>';
+    console.log('distance updated successfully');
+    callback();
 }
 
 function checkinCountAtDate(checkins, date) {
