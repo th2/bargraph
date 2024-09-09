@@ -47,6 +47,45 @@
     load();
 ```
 
+To download the badges run this on the https://untappd.com/user/USERNAME/badges page:
+
+```
+    const download = (filename, text) => {
+        var element = document.createElement('a');
+        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+        element.setAttribute('download', filename);
+        element.style.display = 'none';
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+    }
+
+    const load = () => {
+        if($('.more-badges')[0].style.display !== "none") {  
+            $('.more-badges')[0].click(); 
+            setTimeout(load, 1000);
+        } else {
+            var badges = [];
+            $('.badge-item').each(function(i, badge) {
+                badges[i] = {};
+                if (badge.nodeName === 'DIV') {
+                    badges[i].name = badge.children[0].querySelector('.name').innerText;
+                    if (badge.children[0].querySelector('.date'))
+                        badges[i].date = badge.children[0].querySelector('.date').innerText;
+                    badges[i].image = badge.children[0].querySelector('img').src;
+                    badges[i].isVenuebadge = badge.className.includes('venue-badge');
+                    badges[i].isRetired = !badge.className.includes('not-retired');
+                    badges[i].isLevel = badge.className.includes('level');
+                }
+            });
+            badges.shift();
+            console.log(JSON.stringify(badges));
+            download(`badges-${window.location.pathname.split('/')[2]}.json`, JSON.stringify(badges));
+        }
+    }
+    load();
+```
+
 ### Building and Starting
 The service can be run directly with node.js or inside a docker container:
 - node: `npm install && node server`

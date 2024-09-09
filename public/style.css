@@ -65,3 +65,24 @@ button {
 .footer {
     float: right;
 }
+
+table {
+    border: black 1px solid;
+    border-collapse: collapse;
+}
+
+table th {
+    font-size: 1em;
+    font-weight: bold;
+    border: 1px solid black;
+}
+
+table td {
+    border: 1px solid black;
+}
+
+table img {
+    width: 40px;
+    height: 40px;
+    vertical-align: middle;
+}
