@@ -13,13 +13,13 @@ module.exports.run = (users, callback) => {
     var prevCount = 0;
 
     while (currentDate <= endDate) {
-        const formattedDate = currentDate.format('YYYY-MM-DD');
-        const checkinsAtDate0 = checkinCountAtDate(checkins0, formattedDate);
-        const checkinsAtDate1 = checkinCountAtDate(checkins1, formattedDate);
+        const checkinsAtDate0 = checkinCountAtDate(checkins0, currentDate);
+        const checkinsAtDate1 = checkinCountAtDate(checkins1, currentDate);
         const distance = checkinsAtDate0 - checkinsAtDate1;
+        console.log(currentDate, checkinsAtDate0, checkinsAtDate1);
         
         if (distance !== prevCount) {
-            result.push({date: formattedDate, distance: distance});
+            result.push({date: currentDate.format('YYYY-MM-DD'), distance: distance});
             prevCount = distance;
         }
         currentDate.add(1, 'day');
@@ -31,5 +31,5 @@ module.exports.run = (users, callback) => {
 }
 
 function checkinCountAtDate(checkins, date) {
-    return checkins.filter(checkin => new Date(checkin.created_at) <= new Date(date)).length;
+    return checkins.filter(checkin => new Date(checkin.created_at) <= date).length;
 }
