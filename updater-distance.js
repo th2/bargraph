@@ -16,7 +16,6 @@ module.exports.run = (users, callback) => {
         const checkinsAtDate0 = checkinCountAtDate(checkins0, currentDate);
         const checkinsAtDate1 = checkinCountAtDate(checkins1, currentDate);
         const distance = checkinsAtDate0 - checkinsAtDate1;
-        console.log(currentDate, checkinsAtDate0, checkinsAtDate1);
         
         if (distance !== prevCount) {
             result.push({date: currentDate.format('YYYY-MM-DD'), distance: distance});

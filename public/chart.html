@@ -73,7 +73,7 @@
                     var dateNow = new Date()
                     document.getElementById('lastupdate').innerText = dateLastUpdate.toISOString().split('.')[0].replace('T', ' ')
                     if (dateNow - dateLastUpdate > 1000 * 60 * 60 * 24) {
-                        fetch('/update')
+                        fetch('/update').finally(() => window.location.reload())
                     }
                 })
 
