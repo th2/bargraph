@@ -21,7 +21,7 @@ app.get('/lastupdate', (req, res) => res.sendFile('data/lastupdate.json', {root:
 app.get('/badges', (req, res) => res.send(badges.get(users)))
 app.use('/', express.static('public'))
 app.use(logger.error())
-app.listen(process.env.PORT)
+app.listen(process.env.PORT, () => console.log(`listening on port ${process.env.PORT}`))
 
 function getCheckins(username) {
     return 'todo'

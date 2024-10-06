@@ -88,5 +88,5 @@ To download the badges run this on the https://untappd.com/user/USERNAME/badges 
 
 ### Building and Starting
 The service can be run directly with node.js or inside a docker container:
-- node: `npm install && node server`
+- node: `npm install && node --env-file .env server`
 - docker: `docker compose up`
