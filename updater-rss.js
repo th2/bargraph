@@ -3,11 +3,11 @@ const parser = new Parser();
 const fs = require('fs');
 
 const processUser = async (user) => {
-    const allCheckins = JSON.parse(fs.readFileSync(`data/unique-${user.username}.json`, 'utf8'));
+    let allCheckins = cleanCheckins(JSON.parse(fs.readFileSync(`data/unique-${user.username}.json`, 'utf8')));
     let feed = await parser.parseURL(user.updateUrl);
     feed.items.reverse().forEach(item => {
-        var beer_name = item.title.substring(item.title.indexOf('is drinking a') + 14, item.title.indexOf(' by  ')).trim();
-        var brewery_name = item.title.substring(item.title.indexOf(' by  ') + 5).split(' at ')[0].trim();
+        var beer_name = removeWhitespace(item.title.substring(item.title.indexOf('is drinking a') + 14, item.title.indexOf(' by  ')));
+        var brewery_name = removeWhitespace(item.title.substring(item.title.indexOf(' by  ') + 5).split(' at ')[0]);
         var foundInCheckins = allCheckins.some(previousCheckin => beer_name === previousCheckin.beer_name && brewery_name === previousCheckin.brewery_name);
         if (!foundInCheckins) {
             console.log('new checkin found: ' + item.isoDate + '|' + beer_name + '|' + brewery_name);
@@ -21,6 +21,16 @@ const processUser = async (user) => {
     fs.writeFileSync(`data/unique-${user.username}.json`, JSON.stringify(allCheckins));
     console.log('updated ' + user.displayname);
 }
+
+const cleanCheckins = (checkins) => {
+    return checkins.map(item => {
+        item.beer_name = removeWhitespace(item.beer_name);
+        item.brewery_name = removeWhitespace(item.brewery_name);
+        return item;
+    });
+}
+
+const removeWhitespace = (str) => str.replace(/\s+/g, ' ').trim();
 
 const processUsers = async (users) => {
     for (const user of users) {
