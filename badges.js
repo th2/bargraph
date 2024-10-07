@@ -1,31 +1,33 @@
 const { all } = require("axios");
 const fs = require("fs");
 
+const DEFAULT_IMAGE = "https://assets.untappd.com/badges/bdg_default_lg.jpg";
+
 module.exports.get = (users) => {
-  var allBadges = [];
+  let userInfo = [];
+  let allBadges = [];
 
   users.forEach((user) => {
-    var userBadges = JSON.parse(
+    const userBadges = JSON.parse(
       fs.readFileSync(`data/badges-${user.username}.json`, "utf8")
     );
-    user.uniquebadges = userBadges.length;
-    userBadges.forEach((badge) => {
-      var name = badge.name;
-      var level = undefined;
-      var isLevel = false;
-      var date = undefined;
-      if (badge.date) {
-        date = new Date(badge.date + " UTC");
-      }
-      if (badge.name.includes(" (Level ")) {
-        name = badge.name.split(" (Level ")[0];
-        level = badge.name.split(" (Level ")[1].replace(")", "");
-        isLevel = true;
-      }
-      if (
-        badge.image != "https://assets.untappd.com/badges/bdg_default_lg.jpg"
-      ) {
-        var found = allBadges.find((b) => b.name === name);
+
+    userInfo.push({
+      name: user.username,
+      uniquebadges: userBadges.length,
+    });
+
+    userBadges
+      .filter((badge) => badge.image != DEFAULT_IMAGE)
+      .forEach((badge) => {
+        const name = badge.name.split(" (Level ")[0];
+        const level = badge.name.includes(" (Level ")
+          ? badge.name.split(" (Level ")[1].replace(")", "")
+          : undefined;
+        const isLevel = badge.name.includes(" (Level ");
+        const date = badge.date ? new Date(badge.date + " UTC") : undefined;
+
+        const found = allBadges.find((b) => b.name === name);
         if (found) {
           found.isLevel = found.isLevel || isLevel;
           if (found.firstDate > date) {
@@ -53,64 +55,49 @@ module.exports.get = (users) => {
             ],
           });
         }
-      }
-    });
+      });
   });
+
   allBadges.sort((a, b) => b.firstDate - a.firstDate);
-  /*
-{
-    name: '2022: International Year of Glass',
-    image: 'https://assets.untappd.com/badges/bdg_2022YearofGlass_lg.jpg',
-    isVenuebadge: false,
-    isRetired: true,
-    isLevel: true,
-    firstDate: 2022-06-29T00:00:00.000Z,
-    users: [ [Object], [Object], [Object] ]
-  },
-*/
   return (
     '<html><head><title>Badges</title><link rel="stylesheet" href="style.css"></head><body>' +
     "<table><thead><tr><th>Badge</th>" +
-    users
-      .map(
-        (user) => "<th>" + user.username + " (" + user.uniquebadges + ")</th>"
-      )
+    userInfo
+      .map((user) => "<th>" + user.name + " (" + user.uniquebadges + ")</th>")
       .join("") +
     "</tr></thead><tbody>" +
-    allBadges
-      .map((badge) => {
-        return (
-          '<tr><td><img src="' +
-          badge.image +
-          '" /> ' +
-          badge.name +
-          (badge.isRetired ? " (retired)" : "") +
-          "</td>" +
-          users
-            .map((user) => {
-              var userBadge = badge.users.find((b) => b.name === user.username);
-              if (userBadge) {
-                return (
-                  "<td>" +
-                  (userBadge.date
-                    ? userBadge.date.toISOString().split("T")[0]
-                    : "✓") +
-                  (badge.isLevel
-                    ? " (Level " +
-                      (userBadge.level ? userBadge.level : "1") +
-                      ")"
-                    : "") +
-                  "</td>"
-                );
-              } else {
-                return "<td></td>";
-              }
-            })
-            .join("") +
-          "</tr>"
-        );
+    allBadges.map((badge) => createRow(badge, users)).join("") +
+    "</tbody></table></body></html>"
+  );
+};
+
+const createRow = (badge, users) => {
+  return (
+    '<tr><td><img src="' +
+    badge.image +
+    '" /> ' +
+    badge.name +
+    (badge.isRetired ? " (retired)" : "") +
+    "</td>" +
+    users
+      .map((user) => {
+        const userBadge = badge.users.find((b) => b.name === user.username);
+        if (userBadge) {
+          return (
+            "<td>" +
+            (userBadge.date
+              ? userBadge.date.toISOString().split("T")[0]
+              : "✓") +
+            (badge.isLevel
+              ? " (Level " + (userBadge.level ? userBadge.level : "1") + ")"
+              : "") +
+            "</td>"
+          );
+        } else {
+          return "<td></td>";
+        }
       })
       .join("") +
-    "</tbody></table></body></html>"
+    "</tr>"
   );
 };
