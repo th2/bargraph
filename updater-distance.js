@@ -2,30 +2,16 @@ const fs = require("fs");
 const moment = require("moment");
 
 module.exports.run = (users, callback) => {
-  if (users.length < 2) return "less than 2 users";
-  const checkins0 = JSON.parse(
-    fs.readFileSync(`data/unique-${users[0].username}.json`, "utf8")
-  );
-  const checkins1 = JSON.parse(
-    fs.readFileSync(`data/unique-${users[1].username}.json`, "utf8")
-  );
-
+  const checkins = users.map((user) => loadCheckins(user.username));
   const currentDate = moment(users[0].startDate);
   const endDate = moment().add(1, "day");
-
-  var result = [];
-  var prevCount = 0;
+  let result = [];
+  let prevCount = 0;
 
   while (currentDate <= endDate) {
-    const checkinsAtDate0 = checkinCountAtDate(checkins0, currentDate);
-    const checkinsAtDate1 = checkinCountAtDate(checkins1, currentDate);
-    const distance = checkinsAtDate0 - checkinsAtDate1;
-
+    const distance = checkinCountAtDate(checkins[0], currentDate) - checkinCountAtDate(checkins[1], currentDate);
     if (distance !== prevCount) {
-      result.push({
-        date: currentDate.format("YYYY-MM-DD"),
-        distance: distance,
-      });
+      result.push({ date: currentDate.format("YYYY-MM-DD"), distance: distance });
       prevCount = distance;
     }
     currentDate.add(1, "day");
@@ -35,9 +21,7 @@ module.exports.run = (users, callback) => {
   console.log("distance updated successfully");
   callback();
 };
-
-function checkinCountAtDate(checkins, date) {
-  return checkins
-    .filter((checkin) => new Date(checkin.created_at) <= date)
-    .length;
-}
+const loadCheckins = (username) => JSON.parse(fs.readFileSync(`data/unique-${username}.json`, "utf8"));
+const checkinCountAtDate = (checkins, date) => checkins
+  .filter((checkin) => new Date(checkin.created_at) <= date)
+  .length;
