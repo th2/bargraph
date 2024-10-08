@@ -1,26 +1,26 @@
 <html>
-    <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍻</text></svg>">
-        <title>🍺</title>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js" integrity="sha512-ElRFoEQdI5Ht6kZvyzXhYG9NqjtkmlkfYk0wr6wHxU9JEHakS7UJZNeml5ALk+8IKlU6jDgMabC3vkumRokgJA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-        <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
-        <link rel="stylesheet" href="style.css">
-    </head>
-    <body>
-        <div class="box">
-            <header class="row header">
-                <h1 id="title"><span id="toggleRelativeAbsolute">Relative</span> <span id="toggleCheckinsDistance">Checkins</span> since
-                    <input type="date" id="starttimeInput" value="2020-02-23" min="2019-01-01" onchange="setTimeframe(new Date(this.value).toISOString())">
-                    <button onclick="{var d=new Date(starttime);d.setDate(d.getDate() - 1);setTimeframe(d.toISOString())}">&#60;</button>
-                    <button onclick="{var d=new Date(starttime);d.setDate(d.getDate() + 1);setTimeframe(d.toISOString())}">&#62;</button>
-                    <button onclick="setTimeframe(new Date(new Date().getFullYear() - 1,new Date().getMonth(), new Date().getDate()).toISOString())">year</button>
-                    <button onclick="setTimeframe(new Date(new Date().getFullYear(),new Date().getMonth() - 1, new Date().getDate()).toISOString())">month</button>
-                </h1>
-            </header>
-            <section class="row content"><canvas id="mainchart"></canvas></section>
-            <section class="row content"><span class="footer">data update: <span id="lastupdate">loading...</span> <a href="/update">&circlearrowright;</a> | <a href="https://github.com/th2/bargraph">Code on GitHub</a></span></section>
-        </div>
-        <script src="chart.js"></script>
-    </body>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍻</text></svg>">
+    <title>🍺</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js" integrity="sha512-ElRFoEQdI5Ht6kZvyzXhYG9NqjtkmlkfYk0wr6wHxU9JEHakS7UJZNeml5ALk+8IKlU6jDgMabC3vkumRokgJA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <div class="box">
+      <header class="row header">
+        <h1 id="title"><span id="toggleRelativeAbsolute">Relative</span> <span id="toggleCheckinsDistance">Checkins</span> since
+          <input type="date" id="starttimeInput" value="2020-02-23" min="2019-01-01" onchange="setTimeframe(new Date(this.value).toISOString())">
+          <button onclick="{var d=new Date(starttime);d.setDate(d.getDate() - 1);setTimeframe(d.toISOString())}">&#60;</button>
+          <button onclick="{var d=new Date(starttime);d.setDate(d.getDate() + 1);setTimeframe(d.toISOString())}">&#62;</button>
+          <button onclick="setTimeframe(new Date(new Date().getFullYear() - 1,new Date().getMonth(), new Date().getDate()).toISOString())">year</button>
+          <button onclick="setTimeframe(new Date(new Date().getFullYear(),new Date().getMonth() - 1, new Date().getDate()).toISOString())">month</button>
+        </h1>
+      </header>
+      <section class="row content"><canvas id="mainchart"></canvas></section>
+      <section class="row content"><span class="footer">data update: <span id="lastupdate">loading...</span> <a href="/update">&circlearrowright;</a> | <a href="https://github.com/th2/bargraph">Code on GitHub</a></span></section>
+    </div>
+    <script src="chart.js"></script>
+  </body>
 </html>
