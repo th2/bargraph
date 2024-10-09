@@ -17,7 +17,7 @@ module.exports.run = (users, callback) => {
     currentDate.add(1, "day");
   }
 
-  fs.writeFileSync(`data/distance.json`, JSON.stringify(result));
+  fs.writeFileSync(`public/data/distance.json`, JSON.stringify(result));
   console.log("distance updated successfully");
   callback();
 };

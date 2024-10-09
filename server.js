@@ -1,13 +1,10 @@
-const app = require("express")();
+const express = require("express");
+const app = express();
 const path = require("path");
 const users = require("./data/users.json");
-const updaters = ["./updater-rss.js", "./updater-checkins.js", "./updater-distance.js"];
+const updaters = ["./updater-users.js", "./updater-rss.js", "./updater-checkins.js", "./updater-distance.js"];
 
 app.get("/", (req, res) => sendFile(res, "public/chart.html", "file not found"));
-app.get("/users", (req, res) => res.send(users));
-app.get("/data", (req, res) => sendFile(res, "data/checkins.json", "[]"));
-app.get("/dataDistance", (req, res) => sendFile(res, "data/distance.json", "[]"));
-app.get("/lastupdate", (req, res) => sendFile(res, "data/lastupdate.json", "1970-01-01T00:00:00Z"));
 app.get("/badges", (req, res) => res.send(require("./badges.js").get(users)));
 app.get("/update", (req, res) => update(0, () => res.redirect("/")));
 app.use("/", express.static("public"));

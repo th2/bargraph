@@ -40,7 +40,7 @@ const processUsers = async (users) => {
 module.exports.run = (users, callback) => {
   processUsers(users)
     .then(() => {
-      fs.writeFileSync(`data/lastupdate.json`, new Date().toISOString());
+      fs.writeFileSync(`public/data/lastupdate.json`, new Date().toISOString());
       console.log("all users updated successfully");
       callback();
     })

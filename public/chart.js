@@ -28,24 +28,24 @@ const mainchart = new Chart(ctx, {
 });
 
 function initialize() {
-  fetch("/data")
+  fetch("/data/checkins.json")
     .then((response) => response.json())
     .then((data) => {
       fulldatasets = data;
       displayData();
     });
 
-  fetch("/dataDistance")
+  fetch("/data/distance.json")
     .then((response) => response.json())
     .then((data) => {
       fulldatasetsDistance = data;
     });
 
-  fetch("/users")
+  fetch("/data/users.json")
     .then((response) => response.json())
     .then((users) => users.forEach((user) => makeUserButton(user)));
 
-  fetch("/lastupdate")
+  fetch("/data/lastupdate.json")
     .then((response) => response.text())
     .then((data) => {
       var dateLastUpdate = new Date(data);
@@ -57,7 +57,8 @@ function initialize() {
       if (dateNow - dateLastUpdate > 1000 * 60 * 60 * 24) {
         fetch("/update").finally(() => window.location.reload());
       }
-    });
+    })
+    .catch((error) => fetch("/update").finally(() => window.location.reload()));
 
   document.getElementById("toggleRelativeAbsolute").onclick = (event) => {
     useRelativeValues = !useRelativeValues;
