@@ -1,7 +1,8 @@
 const fs = require("fs");
 const moment = require("moment");
+const users = require("./data/users.json");
 
-module.exports.run = (users, callback) => {
+module.exports.run = (callback) => {
   const checkins = users.map((user) => loadCheckins(user.username));
   const currentDate = moment(users[0].startDate);
   const endDate = moment().add(1, "day");

@@ -1,7 +1,8 @@
 const fs = require("fs");
+const users = require("./data/users.json");
 const dir = "public/data";
 
-module.exports.run = (users, callback) => {
+module.exports.run = (callback) => {
   const usersWithoutUrl = users.map((user) => {
     return {
       ...user,

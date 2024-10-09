@@ -1,6 +1,7 @@
 const fs = require("fs");
+const users = require("./data/users.json");
 
-module.exports.run = (users, callback) => {
+module.exports.run = (callback) => {
   const checkinCounts = users.map((user) => {
     let count = 0;
     const checkins = loadCheckins(user.username)

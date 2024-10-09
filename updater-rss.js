@@ -1,6 +1,7 @@
 const Parser = require("rss-parser");
 const parser = new Parser();
 const fs = require("fs");
+const users = require("./data/users.json");
 
 const processUser = async (user) => {
   let allCheckins = JSON.parse(fs.readFileSync(`data/unique-${user.username}.json`, "utf8"))
@@ -37,7 +38,7 @@ const processUsers = async (users) => {
   }
 };
 
-module.exports.run = (users, callback) => {
+module.exports.run = (callback) => {
   processUsers(users)
     .then(() => {
       fs.writeFileSync(`public/data/lastupdate.json`, new Date().toISOString());
