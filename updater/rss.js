@@ -1,7 +1,7 @@
 const Parser = require("rss-parser");
 const parser = new Parser();
 const fs = require("fs");
-const users = require("./data/users.json");
+const users = require("../data/users.json");
 
 const processUser = async (user) => {
   let allCheckins = JSON.parse(fs.readFileSync(`data/unique-${user.username}.json`, "utf8"))

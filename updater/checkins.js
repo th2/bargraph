@@ -1,5 +1,5 @@
 const fs = require("fs");
-const users = require("./data/users.json");
+const users = require("../data/users.json");
 
 module.exports.run = (callback) => {
   const checkinCounts = users.map((user) => {

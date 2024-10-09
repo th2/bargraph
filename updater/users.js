@@ -1,5 +1,5 @@
 const fs = require("fs");
-const users = require("./data/users.json");
+const users = require("../data/users.json");
 const dir = "public/data";
 
 module.exports.run = (callback) => {

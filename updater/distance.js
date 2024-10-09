@@ -1,6 +1,6 @@
 const fs = require("fs");
 const moment = require("moment");
-const users = require("./data/users.json");
+const users = require("../data/users.json");
 
 module.exports.run = (callback) => {
   const checkins = users.map((user) => loadCheckins(user.username));
