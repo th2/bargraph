@@ -1,8 +1,8 @@
 const fs = require("fs");
-
+const users = require("../data/users.json");
 const DEFAULT_IMAGE = "https://assets.untappd.com/badges/bdg_default_lg.jpg";
 
-module.exports.get = (users) => {
+module.exports.run = (callback) => {
   let badges = {
     list: [],
     users: [],
@@ -44,8 +44,10 @@ module.exports.get = (users) => {
   });
 
   badges.list.sort((a, b) => b.firstDate - a.firstDate);
-
-  return createTable(badges);
+  
+  fs.writeFileSync("public/data/badges.json", JSON.stringify(badges), "utf8");
+  console.log("badges updated successfully");
+  callback();
 };
 
 const makeBadgeUser = (badge, user) => {
@@ -54,46 +56,4 @@ const makeBadgeUser = (badge, user) => {
     date: badge.date,
     level: badge.level,
   };
-};
-
-const createTable = (badges) => {
-    return '<html><head><title>Badges</title><link rel="stylesheet" href="style.css"></head><body>' +
-    "<table><thead><tr><th>Badge</th>" +
-    badges.users
-      .map((user) => "<th>" + user.name + " (" + user.uniquebadges + ")</th>")
-      .join("") +
-    "</tr></thead><tbody>" +
-    badges.list.map((badge) => createRow(badge, badges.users)).join("") +
-    "</tbody></table></body></html>";
-}
-
-const createRow = (badge, users) => {
-  return (
-    '<tr><td><img src="' +
-    badge.image +
-    '" /> ' +
-    badge.name +
-    (badge.isRetired ? " (retired)" : "") +
-    "</td>" +
-    users
-      .map((user) => {
-        const userBadge = badge.users.find((b) => b.name === user.name);
-        if (userBadge) {
-          return (
-            "<td>" +
-            (userBadge.date
-              ? userBadge.date.toISOString().split("T")[0]
-              : "✓") +
-            (badge.isLevel
-              ? " (Level " + (userBadge.level ? userBadge.level : "1") + ")"
-              : "") +
-            "</td>"
-          );
-        } else {
-          return "<td></td>";
-        }
-      })
-      .join("") +
-    "</tr>"
-  );
 };

@@ -1,0 +1,45 @@
+<html><head>
+  <title>Badges</title>
+  <link rel="stylesheet" href="style.css">
+</head><body>
+  <table><thead><tr></tr></thead><tbody></tbody></table>
+  <script>
+    fetch("/data/badges.json")
+      .then((response) => response.json())
+      .then((data) => {
+        createHeader(data.users);
+        createRows(data);
+      });
+
+    function createHeader(users) {
+      const row = document.querySelector("thead tr")
+      row.appendChild(createElement("th", "Badge"));
+      users.forEach((user) => row.appendChild(createElement("th", `${user.name} (${user.uniquebadges})`)));
+    }
+
+    function createRows(badges) {
+      const table = document.querySelector("tbody");
+      badges.list.forEach((badge) => {
+        const row = document.createElement("tr");
+        row.appendChild(createElement("td", `<img src="${badge.image}" /> ${badge.name}${badge.isRetired ? " (retired)" : ""}`));
+        badges.users.forEach((user) => {
+          const userBadge = badge.users.find((b) => b.name === user.name);
+          if (userBadge) {
+            const date = userBadge.date ? userBadge.date.split("T")[0] : "✓";
+            const level = badge.isLevel ? ` (Level ${userBadge.level ? userBadge.level : "1"})` : "";
+            row.appendChild(createElement("td", date + level));
+          } else {
+            row.appendChild(createElement("td", ""));
+          }
+        });
+        table.appendChild(row);
+      });
+    }
+
+    function createElement(tag, content) {
+      const element = document.createElement(tag);
+      element.innerHTML = content;
+      return element;
+    }
+  </script>
+</body></html>
