@@ -1,6 +1,8 @@
 const fs = require("fs");
+const https = require('https');
 const users = require("../data/users.json");
 const DEFAULT_IMAGE = "https://assets.untappd.com/badges/bdg_default_lg.jpg";
+const IMAGE_DIR = "public/images/badges/";
 
 module.exports.run = (callback) => {
   let badges = {
@@ -46,6 +48,12 @@ module.exports.run = (callback) => {
 
   badges.list.sort((a, b) => b.firstDate - a.firstDate);
   
+  badges.list.forEach((badge) => {
+    if (badge.image.startsWith("https")) {
+      badge.image = downloadImage(badge.image);
+    }
+  });
+
   fs.writeFileSync("public/data/badges.json", JSON.stringify(badges), "utf8");
   console.log("badges updated successfully");
   callback();
@@ -58,3 +66,22 @@ const makeBadgeUser = (badge, user) => {
     level: badge.level,
   };
 };
+
+const downloadImage = (url) => {
+  const fileName = url.split("/").pop();
+  const path = IMAGE_DIR + fileName;
+  if (!fs.existsSync(IMAGE_DIR)) {
+    fs.mkdirSync(IMAGE_DIR, { recursive: true });
+  }
+  if (!fs.existsSync(path)) {
+    const file = fs.createWriteStream(path);
+    const request = https.get(url, (response) => {
+       response.pipe(file);
+       file.on("finish", () => {
+           file.close();
+           console.log(`Downloaded ${url} to ${path}`);
+       });
+    });
+  }
+  return path.replace("public", "");
+}
