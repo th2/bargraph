@@ -18,7 +18,6 @@ module.exports.run = (callback) => {
     badges.users.push({
       name: user.username,
       displayname: user.displayname,
-      uniquebadges: userBadges.length,
     });
 
     userBadges

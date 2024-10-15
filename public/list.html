@@ -1,0 +1,151 @@
+<html><head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍻</text></svg>">
+  <title>🍺 List</title>
+  <link rel="stylesheet" href="style.css">
+</head><body>
+  <h1 id="title">
+    <select id="selectListType" onchange="filterTable()"></select>
+    <span id="selectSubCategories"></span>, from
+    <select id="selectUserHas" onchange="filterTable()">
+      <option value="some">someone</option>
+      <option value="all">everyone</option>
+    </select>
+    missing for
+    <select id="selectUserNot" onchange="filterTable()">
+      <option value="some">-</option>
+    </select>
+  </h1>
+  
+  <table><thead><tr></tr></thead><tbody></tbody></table>
+  <script>
+    let listTypes = [ "badges", "uniqueBeers" ];
+    let items = [];
+    let users = [];
+
+    listTypes.forEach((listType) => {
+      document.getElementById("selectListType").appendChild(createOption(listType, formatDisplayName(listType)));
+      fetch(`/data/${listType}.json`)
+        .then((response) => response.json())
+        .then((data) => {
+          users = data.users;
+          items[listType] = data;
+          if (listType === document.getElementById("selectListType").value) {
+            createHeader(items[listType].users);
+            filterTable();
+          }
+        });
+      });
+
+    function createHeader(users) {
+      const row = document.querySelector("thead tr")
+      row.appendChild(createElement("th", "Name"));
+      users.forEach((user) => row.appendChild(createElement("th", `${user.displayname}`)));
+      users.forEach((user) => document.getElementById("selectUserHas").appendChild(createOption(user.name, user.displayname)));
+      users.forEach((user) => document.getElementById("selectUserNot").appendChild(createOption(user.name, user.displayname)));
+    }
+
+    function filterTable() {
+      const listType = document.getElementById("selectListType").value;
+      setSelectSubCategories(listType);
+      const userHas = document.getElementById("selectUserHas").value;
+      const userHasMatches = (badge) => (userHas === "all" && badge.users.length === users.length) || userHas === "some" || badge.users.find((b) => b.name === userHas);
+      const userNot = document.getElementById("selectUserNot").value;
+      const userNotMatches = (badge) => userNot === "some" || !badge.users.find((b) => b.name === userNot);
+      const detailsMatches = (badge) => {
+        if (listType === "badges") {
+          const retired = document.getElementById("selectRetired").value;
+          return retired === "all" || (retired === "active" && !badge.isRetired) || (retired === "retired" && badge.isRetired);
+        } else if (listType === "uniqueBeers") {
+          const brewery = document.getElementById("selectBrewery").value;
+          const beerType = document.getElementById("selectBeerType").value;
+          return (brewery === "some" || badge.detail.brewery_name === brewery) && (beerType === "some" || badge.detail.beer_type === beerType);
+        }
+        return true;
+      }
+
+      const table = document.querySelector("tbody");
+      table.innerHTML = "";
+      createRows({
+        list: items[listType].list.filter((item) => userHasMatches(item) && userNotMatches(item) && detailsMatches(item)),
+        users: items[listType].users
+      });
+    }
+
+    let previousListType = '';
+    function setSelectSubCategories(listType) {
+      if (previousListType === listType) {
+        return;
+      }
+      previousListType = listType;
+      const selectSubCategories = document.getElementById("selectSubCategories");
+      selectSubCategories.innerHTML = "";
+      if (listType === "badges") {
+        selectSubCategories.innerHTML = ', which are <select id="selectRetired" onchange="filterTable()"><option value="all">all</option><option value="active">active</option><option value="retired">retired</option></select>';
+      } else if (listType === "uniqueBeers") {
+        selectSubCategories.innerHTML = 'by <select id="selectBrewery" onchange="filterTable()""><option value="some">-</option></select>' +
+          ' and type <select id="selectBeerType" onchange="filterTable()""><option value="some">-</option></select>';
+        const breweryValues = [];
+        const beerTypeValues = [];
+        items[listType].list.forEach((item) => {
+          if (!breweryValues.includes(item.detail.brewery_name)) {
+            breweryValues.push(item.detail.brewery_name);
+          }
+          if (!beerTypeValues.includes(item.detail.beer_type)) {
+            beerTypeValues.push(item.detail.beer_type);
+          }
+        });
+        breweryValues.sort().forEach((value) => document.getElementById("selectBrewery").appendChild(createOption(value, value)));
+        beerTypeValues.sort().forEach((value) => document.getElementById("selectBeerType").appendChild(createOption(value, value)));
+      }
+    }
+
+    function createRows(items) {
+      const table = document.querySelector("tbody");
+      items.list.forEach((item) => {
+        const row = document.createElement("tr");
+        row.appendChild(createElement("td", makeName(item)));
+        items.users.forEach((user) => {
+          const itemUser = item.users.find((b) => b.name === user.name);
+          if (itemUser) {
+            const date = itemUser.date ? itemUser.date.split("T")[0] : "✓";
+            const level = item.isLevel ? ` (Level ${itemUser.level ? itemUser.level : "1"})` : "";
+            row.appendChild(createElement("td", date + level));
+          } else {
+            row.appendChild(createElement("td", ""));
+          }
+        });
+        table.appendChild(row);
+      });
+    }
+
+    function makeName(item) {
+      const listType = document.getElementById("selectListType").value;
+      if (listType === "badges") {
+        return (item.image ? `<img src="${item.image}" />` : '') + `${item.name}${item.isRetired ? " (retired)" : ""}`
+      } else if (listType === "uniqueBeers") {
+        return item.detail.brewery_name + "<br />" + 
+          item.detail.beer_name + "<br />" + 
+          item.detail.beer_type + " - Rating: " + item.detail.global_rating_score;
+      }
+      return '';
+    }
+
+    function createElement(tag, content) {
+      const element = document.createElement(tag);
+      element.innerHTML = content;
+      return element;
+    }
+
+    function createOption(value, text) {
+      const option = document.createElement("option");
+      option.value = value;
+      option.innerHTML = text;
+      return option;
+    }
+
+    function formatDisplayName(name) {
+      return name.charAt(0).toUpperCase() + name.replace(/([A-Z])/g, ' $1').slice(1);
+    }
+  </script>
+</body></html>
