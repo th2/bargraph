@@ -59,7 +59,7 @@
         } else if (listType === "uniqueBeers") {
           const brewery = document.getElementById("selectBrewery").value;
           const beerType = document.getElementById("selectBeerType").value;
-          return (brewery === "some" || badge.detail.brewery_name === brewery) && (beerType === "some" || badge.detail.beer_type === beerType);
+          return (brewery === "some" || badge.detail.brewery_name === brewery) && (beerType === "some" || (badge.detail.beer_type && badge.detail.beer_type.startsWith(beerType)));
         }
         return true;
       }
@@ -83,16 +83,19 @@
       if (listType === "badges") {
         selectSubCategories.innerHTML = ', which are <select id="selectRetired" onchange="filterTable()"><option value="all">all</option><option value="active">active</option><option value="retired">retired</option></select>';
       } else if (listType === "uniqueBeers") {
-        selectSubCategories.innerHTML = 'by <select id="selectBrewery" onchange="filterTable()""><option value="some">-</option></select>' +
+        selectSubCategories.innerHTML = ' by <select id="selectBrewery" onchange="filterTable()""><option value="some">-</option></select>' +
           ' and type <select id="selectBeerType" onchange="filterTable()""><option value="some">-</option></select>';
         const breweryValues = [];
         const beerTypeValues = [];
         items[listType].list.forEach((item) => {
-          if (!breweryValues.includes(item.detail.brewery_name)) {
+          if (item.detail.brewery_name && !breweryValues.includes(item.detail.brewery_name)) {
             breweryValues.push(item.detail.brewery_name);
           }
-          if (!beerTypeValues.includes(item.detail.beer_type)) {
+          if (item.detail.beer_type && !beerTypeValues.includes(item.detail.beer_type)) {
             beerTypeValues.push(item.detail.beer_type);
+          }
+          if (item.detail.beer_type && item.detail.beer_type.includes(" - ") && !beerTypeValues.includes(item.detail.beer_type.split(" - ")[0])) {
+            beerTypeValues.push(item.detail.beer_type.split(" - ")[0]);
           }
         });
         breweryValues.sort().forEach((value) => document.getElementById("selectBrewery").appendChild(createOption(value, value)));
