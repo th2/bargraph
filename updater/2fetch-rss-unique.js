@@ -16,7 +16,7 @@ const processUser = async (user) => {
     const brewery_name = removeWhitespace(item.title.substring(item.title.indexOf(" by  ") + 5).split(" at ")[0]);
     const foundInCheckins = allCheckins.some((previousCheckin) => beer_name === previousCheckin.beer_name && brewery_name === previousCheckin.brewery_name);
     if (!foundInCheckins) {
-      console.log(`new checkin found: ${item.isoDate} ${beer_name} from ${brewery_name}`);
+      console.log(`rss unique: new checkin found: ${item.isoDate} ${beer_name} from ${brewery_name}`);
       allCheckins.unshift({
         beer_name: beer_name,
         brewery_name: brewery_name,
@@ -25,7 +25,7 @@ const processUser = async (user) => {
     }
   });
   fs.writeFileSync(`data/unique-${user.username}.json`, JSON.stringify(allCheckins));
-  console.log("updated " + user.displayname);
+  console.log("✅ rss unique: updated " + user.displayname);
 };
 
 const removeWhitespace = (str) => str.replace(/\s+/g, " ").trim();
@@ -41,12 +41,11 @@ const processUsers = async (users) => {
 module.exports.run = (callback) => {
   processUsers(users)
     .then(() => {
-      fs.writeFileSync(`public/data/lastupdate.json`, new Date().toISOString());
-      console.log("all users updated successfully");
+      console.log("✅ rss unique");
       callback();
     })
     .catch((error) => {
-      console.error("error updating users:", error);
+      console.error("⚠️ rss unique: error updating users:", error);
       callback();
     });
 };

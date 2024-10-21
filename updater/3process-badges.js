@@ -54,7 +54,7 @@ module.exports.run = (callback) => {
   });
 
   fs.writeFileSync("public/data/badges.json", JSON.stringify(badges), "utf8");
-  console.log("badges updated successfully");
+  console.log("✅ badges");
   callback();
 };
 

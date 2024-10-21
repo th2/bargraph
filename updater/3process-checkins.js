@@ -17,7 +17,7 @@ module.exports.run = (callback) => {
   });
   
   fs.writeFileSync("public/data/checkins.json", JSON.stringify(checkinCounts), "utf8");
-  console.log("checkins count updated successfully");
+  console.log("✅ checkins");
   callback();
 };
 

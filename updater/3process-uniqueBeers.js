@@ -57,7 +57,7 @@ module.exports.run = (callback) => {
   });
 
   fs.writeFileSync("public/data/uniqueBeers.json", JSON.stringify(beers), "utf8");
-  console.log("uniqueBeers updated successfully");
+  console.log("✅ unique beers");
   callback();
 };
 

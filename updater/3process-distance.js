@@ -19,7 +19,7 @@ module.exports.run = (callback) => {
   }
 
   fs.writeFileSync(`public/data/distance.json`, JSON.stringify(result));
-  console.log("distance updated successfully");
+  console.log("✅ distance");
   callback();
 };
 const loadCheckins = (username) => JSON.parse(fs.readFileSync(`data/unique-${username}.json`, "utf8"));

@@ -15,7 +15,7 @@ const processUser = async (user) => {
     const checkinId = item.link.split("/").pop();
     if (!oldCheckinIds.includes(checkinId)) {
       changes = true;
-      console.log(`new checkin found: ${checkinId} (${item.title}): ${item.link}`);
+      console.log(`rss checkins: new checkin found: ${checkinId} (${item.title}): ${item.link}`);
       await fetch(item.link, {headers: {
         cookie: cookie,
         'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36'
@@ -45,9 +45,9 @@ const processUser = async (user) => {
   }
   if (changes) {
     fs.writeFileSync(`data/checkins-${user.username}.json`, JSON.stringify(allCheckins, null, 2));
-    console.log(`updated ${user.displayname} with changes`);
+    console.log(`✅ rss checkins: updated ${user.displayname} with changes`);
   } else {
-    console.log(`updated ${user.displayname}`);
+    console.log(`✅ rss checkins: updated ${user.displayname}`);
   }
 };
 
@@ -62,12 +62,11 @@ const processUsers = async (users) => {
 module.exports.run = (callback) => {
   processUsers(users)
     .then(() => {
-      fs.writeFileSync(`public/data/lastupdate.json`, new Date().toISOString());
-      console.log("all users updated successfully");
+      console.log("✅ rss checkins");
       callback();
     })
     .catch((error) => {
-      console.error("error updating users:", error);
+      console.error("⚠️ rss checkins: error updating users:", error);
       callback();
     });
 };
