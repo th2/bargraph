@@ -36,7 +36,7 @@ module.exports.run = (callback) => {
 
 const processVenues = async (newVenues, knownVenues) => {
   for (const venue of newVenues) {
-    console.log(`venues: processing ${venue.name}`);
+    console.log(`venues: processing ${venue.name} (${venue.link})`);
     const venueInfo = await fetchVenueInfo(venue.link);
     console.log(venueInfo);
     knownVenues.push(venueInfo);
@@ -46,8 +46,7 @@ const processVenues = async (newVenues, knownVenues) => {
 }
 
 const fetchVenueInfo = async (venueLink) => {
-  const cookie = fs.readFileSync("data/cookie.txt", "utf8");
-  return await fetch("https://untappd.com" + venueLink, { headers: { cookie: cookie, 'user-agent': userAgent }})
+  return await fetch("https://untappd.com" + venueLink, { headers: { 'user-agent': userAgent }})
     .then((response) => response.text())
     .then((html) => {
       const dom = new jsdom.JSDOM(html);

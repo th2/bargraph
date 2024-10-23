@@ -46,8 +46,7 @@ const processBreweries = async (newBreweries, knownBreweries) => {
 }
 
 const fetchBreweryInfo = async (breweryLink) => {
-  const cookie = fs.readFileSync("data/cookie.txt", "utf8");
-  return await fetch("https://untappd.com" + breweryLink, { headers: { cookie: cookie, 'user-agent': userAgent }})
+  return await fetch("https://untappd.com" + breweryLink, { headers: { 'user-agent': userAgent }})
     .then((response) => response.text())
     .then((html) => {
       const dom = new jsdom.JSDOM(html);
