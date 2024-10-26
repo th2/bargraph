@@ -13,6 +13,7 @@ module.exports.run = (callback) => {
 function generateProfile(user) {
   const checkins = require(`../data/checkins-${user.username}.json`);
   const uniqueBeers = [];
+  const breweryRatings = {};
   const profile = {
     displayname: user.displayname,
     totalCheckins: checkins.length,
@@ -21,17 +22,18 @@ function generateProfile(user) {
     alcoholFreePercentage: 0,
     alcoholDistribution: {},
     breweryCountries: {},
-    breweryDistribution: {},
-    breweryStyleDistribution: {},
+    breweryCounts: {},
+    breweryRatings: {},
+    breweryStyleCounts: {},
     globalRatingDistribution: {},
     ibuDistribution: {},
     ratingDistribution: {},
-    servingDistribution: {},
-    styleCategoryDistribution: {},
-    styleDistribution: {},
+    servingCounts: {},
+    styleCategoryCounts: {},
+    styleCounts: {},
     venueCountries: {},
-    venueDistribution: {},
-    venueTypeDistribution: {}
+    venueCounts: {},
+    venueTypeCounts: {}
   };
 
   checkins.forEach((checkin) => {
@@ -43,35 +45,44 @@ function generateProfile(user) {
 
     if (!uniqueBeers.includes(beer.name)) uniqueBeers.push(beer.name);
     if (isAlcoholFree(beer)) profile.alcoholFreeCheckins++;
+    if (checkin.brewery) {
+      if (breweryRatings[checkin.brewery]) {
+        breweryRatings[checkin.brewery].push(checkin.rating);
+      } else {
+        breweryRatings[checkin.brewery] = [checkin.rating];
+      }
+    }
     
     aggregate(profile.alcoholDistribution, getAbv(beer));
     aggregateBreweryData(checkin, profile);
-    aggregate(profile.breweryDistribution, checkin.brewery);
+    aggregate(profile.breweryCounts, checkin.brewery);
     aggregate(profile.globalRatingDistribution, Math.round(beer.stats.rating * 10) / 10);
     aggregate(profile.ibuDistribution, beer.ibu);
     aggregate(profile.ratingDistribution, checkin.rating);
-    aggregate(profile.servingDistribution, checkin.serving.trim());
-    aggregate(profile.styleCategoryDistribution, beer.style.split(" - ")[0]);
-    aggregate(profile.styleDistribution, beer.style);
+    aggregate(profile.servingCounts, checkin.serving.trim());
+    aggregate(profile.styleCategoryCounts, beer.style.split(" - ")[0]);
+    aggregate(profile.styleCounts, beer.style);
     addToVenueData(checkin, profile);
-    aggregate(profile.venueDistribution, checkin.venue);
+    aggregate(profile.venueCounts, checkin.venue);
   });
 
   profile.uniqueBeers = uniqueBeers.length;
+  profile.breweryRatings = mapBreweryRatings(breweryRatings);
   profile.alcoholFreePercentage = ((profile.alcoholFreeCheckins / profile.totalCheckins) * 100).toFixed(2);
   profile.alcoholDistribution = sort(profile.alcoholDistribution);
   profile.breweryCountries = sort(profile.breweryCountries);
-  profile.breweryDistribution = sort(profile.breweryDistribution);
-  profile.breweryStyleDistribution = sort(profile.breweryStyleDistribution);
+  profile.breweryCounts = sort(profile.breweryCounts);
+  profile.breweryRatings = sort(profile.breweryRatings);
+  profile.breweryStyleCounts = sort(profile.breweryStyleCounts);
   profile.globalRatingDistribution = sort(profile.globalRatingDistribution);
   profile.ibuDistribution = sort(profile.ibuDistribution);
   profile.ratingDistribution = sort(profile.ratingDistribution);
-  profile.servingDistribution = sort(profile.servingDistribution);
-  profile.styleCategoryDistribution = sort(profile.styleCategoryDistribution);
-  profile.styleDistribution = sort(profile.styleDistribution);
+  profile.servingCounts = sort(profile.servingCounts);
+  profile.styleCategoryCounts = sort(profile.styleCategoryCounts);
+  profile.styleCounts = sort(profile.styleCounts);
   profile.venueCountries = sort(profile.venueCountries);
-  profile.venueDistribution = sort(profile.venueDistribution);
-  profile.venueTypeDistribution = sort(profile.venueTypeDistribution);
+  profile.venueCounts = sort(profile.venueCounts);
+  profile.venueTypeCounts = sort(profile.venueTypeCounts);
 
   fs.writeFileSync(`public/profile/data/${user.displayname}.json`, JSON.stringify(profile, null, 2));
 }
@@ -94,8 +105,9 @@ function aggregateBreweryData(checkin, profile) {
     console.log(`Brewery not found: ${checkin.breweryLink}`);
     return;
   }
+
   aggregate(profile.breweryCountries, getCountry(brewery));
-  aggregate(profile.breweryStyleDistribution, brewery.style);
+  aggregate(profile.breweryStyleCounts, brewery.style);
 }
 
 function addToVenueData(checkin, profile) {
@@ -105,12 +117,28 @@ function addToVenueData(checkin, profile) {
     console.log(`Venue not found: ${checkin.venueLink}`);
     return;
   }
-  venue.type.split(", ").forEach((type) => aggregate(profile.venueTypeDistribution, type));
+  venue.type.split(", ").forEach((type) => aggregate(profile.venueTypeCounts, type));
   if (!venue.osm_country) {
     console.log(`Venue country not found: ${checkin.venueLink}`);
     return;
   }
   aggregate(profile.venueCountries, venue.osm_country);
+}
+
+function mapBreweryRatings(breweryRatings) {
+  return Object.keys(breweryRatings).map((brewery) => {
+    const numberOfRatings = breweryRatings[brewery].length;
+    return {
+      brewery: brewery,
+      averageRating: (breweryRatings[brewery].reduce((a, b) => parseFloat(a) + parseFloat(b), 0) / numberOfRatings).toFixed(2),
+      numberOfRatings: numberOfRatings
+    };
+  }).sort((a, b) => {
+    if (b.averageRating === a.averageRating) {
+      return b.numberOfRatings - a.numberOfRatings;
+    }
+    return b.averageRating - a.averageRating;
+  });
 }
 
 function getCountry(brewery) {
