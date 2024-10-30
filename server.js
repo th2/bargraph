@@ -8,6 +8,11 @@ app.get("/update", (req, res) => updateCheck(() => res.redirect("/")));
 app.use("/", express.static("public"));
 
 const updateCheck = (callback) => {
+  if (!fs.existsSync('public/data/lastupdate.json')) {
+    console.log('No last update file found.');
+    update(0, callback);
+    return;
+  }
   const lastUpdate = new Date(fs.readFileSync('public/data/lastupdate.json', 'utf8'));
   const minutesSinceLastUpdate = (new Date() - lastUpdate) / 1000 / 60;
   console.log(`Minutes since last update: ${minutesSinceLastUpdate}`);
