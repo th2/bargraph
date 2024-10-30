@@ -12,4 +12,5 @@ services:
     volumes:
       - ./log:/usr/src/app/log
       - ./data:/usr/src/app/data
+      - ./public/images:/usr/src/app/public/images
     command: node server.js
