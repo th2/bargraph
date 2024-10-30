@@ -51,18 +51,22 @@ function renderStats() {
   profileTitle.innerHTML = `<h1>${data.displayname} has ${data.totalCheckins} check-ins 
     to ${data.uniqueBeers} beers from ${Object.keys(data.breweryCounts).length} breweries 
     in ${Object.keys(data.breweryCountries).length} countries 
-    at ${Object.keys(data.venueCounts).length} venues 
+    at ${data.venues.length} venues 
     in ${Object.keys(data.venueCountries).length} counties 
     with an average rating of ${data.averageRating}.</h1>`;
   content.appendChild(profileTitle);
   const chartContainer = document.createElement('div');
   chartContainer.classList.add('chart-container');
-  chartContainer.appendChild(makeDiagram("Ratings", 'line', 'white', [data.ratingDistribution]));
-  chartContainer.appendChild(makeDiagram("Beer style", 'pie', 'yellow', [Object.fromEntries(Object.entries(data.styleCategoryPercentages).filter(([key, value]) => value > 1))]));
-  chartContainer.appendChild(makeDiagram("Serving style", 'bar', 'white', [data.servingCounts]));
-  chartContainer.appendChild(makeDiagram("ABV", 'bar', 'yellow', [data.alcoholDistribution]));
-  chartContainer.appendChild(makeDiagram("Check-ins By Day", 'bar', 'white', [data.weekdayCounts]));
-  chartContainer.appendChild(makeDiagram("Check-ins By Hour", 'bar', 'white', [data.hourCounts]));  
+  chartContainer.appendChild(makeDiagram("Ratings", 'line', 'white', data.ratings));
+  chartContainer.appendChild(makeDiagram("Styles", 'pie', 'yellow', data.beerStyles.filter(item => item.percentage > 1).sort((a, b) => a.darkness - b.darkness)));
+  chartContainer.appendChild(makeList("Top Styles", data.beerStyles.filter(item => item.percentage > 1).sort((a, b) => b.average - a.average)));
+  chartContainer.appendChild(makeDiagram("Serving", 'bar', 'white', data.serving.filter(item => item.percentage > 1).sort((a, b) => b.count - a.count)));
+  chartContainer.appendChild(makeList("Serving Rating", data.serving.filter(item => item.percentage > 1).sort((a, b) => b.average - a.average)));
+  chartContainer.appendChild(makeDiagram("ABV", 'bar', 'yellow', data.abv));
+  chartContainer.appendChild(makeDiagram("ABV Rating", 'line', 'yellow', data.abv.filter(item => item.name !== 'N/A').map(item => ({ name: item.name, percentage: item.average }))));
+  chartContainer.appendChild(makeDiagram("Check-ins By Day", 'bar', 'white', data.weekdays));
+  chartContainer.appendChild(makeDiagram("Day Rating", 'line', 'yellow', data.weekdays.map(item => ({ name: item.name, percentage: item.average }))));
+  chartContainer.appendChild(makeDiagram("Check-ins By Hour", 'bar', 'white', data.hours));
   content.appendChild(chartContainer);
   
   const tabBar = document.createElement('div');
@@ -84,7 +88,7 @@ function renderStats() {
 
   const beerContainer = document.createElement('div');
   beerContainer.classList.add('tab-container');
-  beerContainer.innerHTML = `<h3>Beers</h3>`;
+  beerContainer.appendChild(makeFilterList(data.beerList)); 
   content.appendChild(beerContainer);
 
   breweryContainer = document.createElement('div');
@@ -97,74 +101,69 @@ function renderStats() {
   venueContainer = document.createElement('div');
   venueContainer.classList.add('tab-container');
   venueContainer.style.display = 'none';
-  venueContainer.appendChild(makeList("Venue checked-ins", 'list', data.venueCounts));
+  venueContainer.appendChild(makeList("Top Venues", data.venues.sort((a, b) => b.count - a.count)));  
   venueContainer.appendChild(makeButtonList(data.venueCountries));
   content.appendChild(venueContainer);
 
   content.appendChild(document.createElement('script')).src = `https://maps.googleapis.com/maps/api/js?key=${data.mapsKey}&libraries=maps&v=beta&loading=async&libraries=visualization&callback=initMap`;
 }
 
-function makeDiagram(title, type, colors, data, labels) {
-  const diagram = document.createElement('div');
-  diagram.classList.add('chart-box');
-  diagram.innerHTML = `<h2>${title}</h2>`;
+function makeDiagram(title, type, colors, data) {
+  const diagram = makeElement('div', `<h2>${title}</h2>`, 'chart-box');
   const canvas = document.createElement('canvas');
   canvas.height = 300;
   diagram.appendChild(canvas);
   const ctx = canvas.getContext('2d');
-  const count = Object.keys(data[0]).length;
-  const colorPaletteRainbow = Array.from({ length: count }, (v, i) => `hsl(${i * 360 / count}, 100%, 50%)`);
-  const colorPaletteYellow = Array.from({ length: count }, (v, i) => `hsl(50, 100%, ${100 - i * 100 / count}%)`);
-  const chart = new Chart(ctx, {
+  new Chart(ctx, {
     plugins: [ChartDataLabels],
     type: type,
     data: {
-      labels: Object.keys(data[0]),
-      datasets: data.map((dataset, index) => ({
-        label: labels ? labels[index] : title,
-        data: Object.values(dataset),
-        borderColor: index === 0 ? 'white' : 'gray',
+      labels: data.map(item => item.name),
+      datasets: [{
+        label: 'Percent',
+        data: data.map(item => item.percentage),
+        borderColor: 'white',
         borderWidth: 1,
-        backgroundColor: colors === 'yellow' ? colorPaletteYellow : colors === 'rainbow' ? colorPaletteRainbow : index === 0 ? 'white' : 'gray'
-      }))
+        backgroundColor: getColorPalette(colors, data.length)
+      }]
     },
     options: {
         maintainAspectRatio: true,
         responsive: true,
         plugins: {
-            legend: {
-                display: false
-            },
-            datalabels: {
-              color: '#000',
-              formatter: function(value, ctx) {
-                return type === 'pie' ? ctx.chart.data.labels[ctx.dataIndex] : '';
-              }
-            }
+            legend: { display: false },
+            datalabels: { color: '#000', formatter: (value, ctx) => type === 'pie' ? ctx.chart.data.labels[ctx.dataIndex] : '' }
         }
     }
   });
   return diagram;
 }
 
-function makeList(title, type, data) {
-  const list = document.createElement('div');
-  list.classList.add('chart-box');
-  list.innerHTML = `<h2>${title}</h2>`;
-  const ul = document.createElement(type === 'list' ? 'ol' : 'ul');
-  if (type === 'tags') {
-    ul.classList.add('tag-list');
-  } else if (type === 'list') {
-    ul.classList.add('mumber-list');
-    data = Object.fromEntries(Object.entries(data).slice(0, 15));
-  }
-  Object.keys(data).forEach(key => {
-    const li = document.createElement('li');
-    li.innerHTML = `<span>${key}</span> <span ${type === 'tags' ? '' : 'class="tag"'}>${data[key]}</span>`;
-    ul.appendChild(li);
-  });
-  list.appendChild(ul);
+function getColorPalette(colors, count) {
+  const colorPaletteRainbow = Array.from({ length: count }, (v, i) => `hsl(${i * 360 / count}, 100%, 50%)`);
+  const colorPaletteYellow = Array.from({ length: count }, (v, i) => `hsl(50, 100%, ${100 - i * 100 / count}%)`);
+  return colors === 'yellow' ? colorPaletteYellow : colors === 'rainbow' ? colorPaletteRainbow : 'white';
+}
+
+function makeList(title, data) {
+  const list = makeElement('div', `<h2>${title}</h2>`, 'chart-box');
+  const ol = makeElement('ol', '', 'number-list');
+  data.forEach(item => ol.appendChild(makeElement('li', `<span>${item.name}</span> <span class="tag"> ${item.average ? item.average + ' in ' : ''}${item.count} </span>`)));
+  list.appendChild(ol);
   return list;
+}
+
+function makeElement(type, content) {
+  const element = document.createElement(type);
+  element.innerHTML = content;
+  return element;
+}
+
+function makeElement(type, content, className) {
+  const element = document.createElement(type);
+  element.classList.add(className);
+  element.innerHTML = content;
+  return element;
 }
 
 function makeRatingList(title, type, data) {
@@ -204,35 +203,32 @@ function makeButtonList(data) {
 
 function makeFilterList(data) {
   const list = document.createElement('div');
-  list.appendChild(makeRatingSlider(data));
-
   const ul = document.createElement('ol');
-  ul.id = 'brewery-list';
-  setBreweryList(data, ul);
+  list.appendChild(makeRatingSlider(data, ul));
+  setFilterListData(data, ul);
   list.appendChild(ul);
   return list;
 }
 
-function setBreweryList(data, ul) {
+function setFilterListData(data, ul) {
   Object.keys(data)
-    .sort((a, b) => data[b]['average-rating'] - data[a]['average-rating'])
+    .sort((a, b) => data[b].average - data[a].average)
     .slice(0, 20)
     .forEach(key => {
       const li = document.createElement('li');
       li.innerHTML = `<span>${data[key].name}</span> 
-      <span class="tag">${data[key]['average-rating']} in ${data[key]['number-of-ratings']}</span>
-      <span class="tag">${data[key]['style']}</span>
-      <span class="tag">${data[key]['address']}</span>`;
-      li.addEventListener('click', () => {
-        li.classList.toggle('tag-active');
-      });
+      <span class="tag">${data[key].average} in ${data[key].count}</span>
+      <span class="tag">${data[key].style}</span>`;
+      if (data[key].address) {
+        li.innerHTML += ` <span class="tag">${data[key].address}</span>`;
+      }
       ul.appendChild(li);
     });
 }
 
-function makeRatingSlider(data) {
+function makeRatingSlider(data, ul) {
   const sliderContainer = document.createElement('div');
-  const hihestRatingCount = Math.max(...data.map(brewery => brewery['number-of-ratings']));
+  const hihestRatingCount = Math.max(...data.map(element => element.count));
   const sliderLabel = document.createElement('label');
   sliderLabel.htmlFor = 'rating-slider';
   sliderLabel.innerText = 'Number of ratings:';
@@ -245,10 +241,9 @@ function makeRatingSlider(data) {
   slider.value = 1;
   slider.addEventListener('input', () => {
     document.getElementById('rating-slider-value').innerText = slider.value;
-    const filteredData = data.filter(brewery => brewery['number-of-ratings'] >= slider.value);
-    const ul = document.getElementById('brewery-list');
+    const filteredData = data.filter(element => element.count >= slider.value);
     ul.innerHTML = '';
-    setBreweryList(filteredData, ul);
+    setFilterListData(filteredData, ul);
   });
   sliderContainer.appendChild(slider);
   const sliderValue = document.createElement('span');

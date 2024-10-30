@@ -3,6 +3,25 @@ const users = require("../data/users.json");
 const beers = require(`../data/beers.json`);
 const breweries = require(`../data/breweries.json`);
 const venues = require(`../data/venues.json`);
+const styleDarkness = [
+  "Shandy / Radler",
+  "Pilsner",
+  "Lager",
+  "Blonde / Golden Ale",
+  "Märzen",
+  "Wheat Beer",
+  "Pale Ale",
+  "IPA",
+  "Kellerbier / Zwickelbier",
+  "Hard Ginger Beer",
+  "Sour",
+  "Red Ale",
+  "Malt Beer",
+  "Bock",
+  "Stout",
+  "Other"
+]
+const weekdays = [ "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday" ];
 
 module.exports.run = (callback) => {
   users.forEach((user) => generateStats(user));
@@ -12,83 +31,24 @@ module.exports.run = (callback) => {
 
 function generateStats(user) {
   const checkins = require(`../data/checkins-${user.username}.json`);
-  const uniqueBeers = [];
+  const abvAccumulator = { count: [], rating: [], total: 0 };
+  const beerAccumulator = { count: [], rating: [], total: 0 };
+  const hourAccumulator = { count: [], rating: [], total: 0 };
+  const servingAccumulator = { count: [], rating: [], total: 0 };
+  const styleAccumulator = { count: [], rating: [], total: 0 };
+  const venueAccumulator = { count: [], rating: [], total: 0 };
+  const weekDayAccumulator = { count: [], rating: [], total: 0 };
+  const ratingList = [];
+
   const breweryRatingList = {};
   const stats = {
-    displayname: user.displayname,
-    totalCheckins: checkins.length,
-    uniqueBeers: 0,
-    alcoholFreeCheckins: 0,
-    alcoholFreePercentage: 0,
-    alcoholDistribution: {},
-    alcoholPercentageDistribution: {},
     breweryCountries: {},
     breweryCounts: {},
     breweryList: {},
-    breweryStyleCounts: {},
     globalRatingDistribution: {},
-    ibuDistribution: {},
-    ratingDistribution: {},
-    servingCounts: {},
-    styleCategoryCounts: {
-      "Shandy / Radler": 0,
-      "Pilsner": 0,
-      "Lager": 0,
-      "Blonde / Golden Ale": 0,
-      "Märzen": 0,
-      "Wheat Beer": 0,
-      "Pale Ale": 0,
-      "IPA": 0,
-      "Kellerbier / Zwickelbier": 0,
-      "Hard Ginger Beer": 0,
-      "Sour": 0,
-      "Red Ale": 0,
-      "Malt Beer": 0,
-      "Bock": 0,
-      "Stout": 0,
-      "Other": 0
-    },
-    styleCategoryPercentages: {},
     styleCounts: {},
     venueCountries: {},
-    venueCounts: {},
     venueTypeCounts: {},
-    hourCounts: {
-      " 6": 0,
-      " 7": 0,
-      " 8": 0,
-      " 9": 0,
-      " 9": 0,
-      " 10": 0,
-      " 11": 0,
-      " 12": 0,
-      " 13": 0,
-      " 14": 0,
-      " 15": 0,
-      " 16": 0,
-      " 17": 0,
-      " 18": 0,
-      " 19": 0,
-      " 20": 0,
-      " 21": 0,
-      " 22": 0,
-      " 23": 0,
-      " 0": 0,
-      " 1": 0,
-      " 2": 0,
-      " 3": 0,
-      " 4": 0,
-      " 5": 0
-    },
-    weekdayCounts: {
-      "Monday": 0,
-      "Tuesday": 0,
-      "Wednesday": 0,
-      "Thursday": 0,
-      "Friday": 0,
-      "Saturday": 0,
-      "Sunday": 0
-    },
     venueLocations: {}
   };
 
@@ -99,54 +59,89 @@ function generateStats(user) {
       return;
     }
 
-    if (!uniqueBeers.includes(beer.name)) uniqueBeers.push(beer.name);
-    if (isAlcoholFree(beer)) stats.alcoholFreeCheckins++;
+    aggregate(ratingList, checkin.rating * 4);
+    aggregateRatings(abvAccumulator, getAbv(beer), checkin.rating);
+    aggregateRatings(beerAccumulator, checkin.beerLink, checkin.rating);
+    aggregateRatings(hourAccumulator, new Date(checkin.time).getHours(), checkin.rating);
+    aggregateRatings(styleAccumulator, getBeerStyle(beer), checkin.rating);
+    aggregateRatings(servingAccumulator, checkin.serving.trim(), checkin.rating);
+    aggregateRatings(venueAccumulator, checkin.venue, checkin.rating);
+    aggregateRatings(weekDayAccumulator, new Date(checkin.time).toLocaleDateString("en-US", { weekday: "long" }), checkin.rating);
     
-    aggregate(stats.alcoholDistribution, getAbv(beer));
-    aggregate(stats.alcoholDistribution, getAbv(beer));
     aggregateBreweryData(checkin, stats);
     aggregateBreweryList(breweryRatingList, checkin);
+
     aggregate(stats.breweryCounts, checkin.brewery);
     aggregate(stats.globalRatingDistribution, (Math.round(beer.stats.rating * 10) / 10).toFixed(1));
-    aggregate(stats.ibuDistribution, beer.ibu);
-    aggregate(stats.ratingDistribution, parseFloat(checkin.rating).toFixed(2));
-    aggregate(stats.servingCounts, checkin.serving.trim());
-    aggregate(stats.styleCategoryCounts, getBeerStyle(beer));
     aggregate(stats.styleCounts, beer.style);
     addToVenueData(checkin, stats);
-    aggregate(stats.venueCounts, checkin.venue);
-    aggregate(stats.hourCounts, ' ' + new Date(checkin.time).getHours());
-    aggregate(stats.weekdayCounts, new Date(checkin.time).toLocaleDateString("en-US", { weekday: "long" }));
   });
   
-  stats.uniqueBeers = uniqueBeers.length;
-  stats.averageRating = (checkins.reduce((a, b) => a + parseFloat(b.rating), 0) / checkins.length).toFixed(2);
-  stats.medianRating = checkins.sort((a, b) => a.rating - b.rating)[Math.floor(checkins.length / 2)].rating;
-  stats.lowestRating = Math.min(...checkins.map((checkin) => checkin.rating));
-  stats.highestRating = Math.max(...checkins.map((checkin) => checkin.rating));
   stats.breweryList = mapBreweryList(breweryRatingList);
-  stats.alcoholFreePercentage = ((stats.alcoholFreeCheckins / stats.totalCheckins) * 100).toFixed(2);
-  stats.alcoholDistribution = sort(stats.alcoholDistribution);
-  stats.alcoholPercentageDistribution = Object.fromEntries(Object.entries(stats.alcoholDistribution).map(([key, value]) => [ key, ((value / stats.totalCheckins) * 100).toFixed(2)]));
   stats.breweryCountries = sort(stats.breweryCountries);
   stats.breweryCounts = sort(stats.breweryCounts);
-  stats.breweryStyleCounts = sort(stats.breweryStyleCounts);
   stats.globalRatingDistribution = sortByKey(stats.globalRatingDistribution);
-  stats.ibuDistribution = sort(stats.ibuDistribution);
-  stats.ratingDistribution = sortByKey(stats.ratingDistribution);
-  stats.servingCounts = sort(stats.servingCounts);
-  stats.styleCategoryPercentages = Object.fromEntries(Object.entries(stats.styleCategoryCounts).map(([key, value]) => [ key, ((value / stats.totalCheckins) * 100).toFixed(2)]));
   stats.styleCounts = sort(stats.styleCounts);
   stats.venueCountries = sort(stats.venueCountries);
-  stats.venueCounts = sort(stats.venueCounts);
   stats.venueTypeCounts = sort(stats.venueTypeCounts);
+
+  // new structure
+  stats.displayname = user.displayname,
+  stats.totalCheckins = checkins.length,
+  stats.averageRating = (checkins.reduce((a, b) => a + parseFloat(b.rating), 0) / checkins.length).toFixed(2);
+  stats.lowestRating = Math.min(...checkins.map((checkin) => checkin.rating));
+  stats.highestRating = Math.max(...checkins.map((checkin) => checkin.rating));
+  stats.uniqueBeers = Object.keys(beerAccumulator.count).length;
   stats.mapsKey = fs.readFileSync("data/googlemaps.key", "utf8").trim();
 
-  const dataDir = "public/stats/data/";
-  if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
+  stats.abv = makeCountsWithRating(abvAccumulator);
+  const hours = makeCountsWithRating(hourAccumulator);
+  stats.hours = [];
+  for (let i = 0; i < 24; i++) {
+    const hour = hours.find((hour) => hour.name == ((i + 6) % 24));
+    stats.hours[i] = hour ? hour : { name: ((i + 6) % 24), count: 0, percentage: 0, average: 0, ratingCount: 0, ratingPercentage: 0, ratingAverage: 0 };
   }
-  fs.writeFileSync(`${dataDir}${user.displayname}.json`, JSON.stringify(stats, null, 2));
+  stats.beerStyles = makeCountsWithRating(styleAccumulator);
+  stats.beerStyles.forEach((style) => { style.darkness = styleDarkness.indexOf(style.name); });
+  stats.serving = makeCountsWithRating(servingAccumulator);
+  stats.venues = makeCountsWithRating(venueAccumulator);
+  stats.weekdays = makeCountsWithRating(weekDayAccumulator).sort((a, b) => weekdays.indexOf(a.name) - weekdays.indexOf(b.name));
+
+  stats.beerList = Object.entries(beerAccumulator.rating).map(([key, value]) => {
+    const beer = beers.find((beer) => beer.link === key);
+    const brewery = breweries.find((brewery) => brewery.link === beer.brewery);
+    return {
+      name: brewery.name + " - " + beer.name,
+      link: key,
+      average: (value.reduce((a, b) => parseFloat(a) + parseFloat(b), 0) / value.length).toFixed(2),
+      count: value.length,
+      percentage: ((value.length / stats.totalCheckins) * 100).toFixed(2),
+      style: beer.style
+    }
+  });
+
+  stats.ratings = [];
+  for (let i = 0; i <= 5; i += 0.25) {
+    stats.ratings[i * 4] = ({
+      name: i.toFixed(2),
+      count: ratingList[i * 4] || 0,
+      percentage: (((ratingList[i * 4] || 0) / ratingList.reduce((a, b) => a + b, 0)) * 100).toFixed(2)
+    });
+  }
+
+  writeToFile(user, stats);
+}
+
+function makeCountsWithRating(accumulator) {
+  return Object.entries(accumulator.count).map(([key, value]) => ({
+    name: key,
+    count: value,
+    percentage: ((value / accumulator.total) * 100).toFixed(2),
+    average: (accumulator.rating[key].reduce((a, b) => parseFloat(a) + parseFloat(b), 0) / accumulator.rating[key].length).toFixed(2),
+    ratingCount: accumulator.rating[key].length,
+    ratingPercentage: ((accumulator.rating[key].length / accumulator.total) * 100).toFixed(2),
+    ratingAverage: (accumulator.rating[key].reduce((a, b) => parseFloat(a) + parseFloat(b), 0) / accumulator.rating[key].length).toFixed(2)
+  }));
 }
 
 function getAbv(beer) {
@@ -181,7 +176,6 @@ function aggregateBreweryData(checkin, stats) {
   }
 
   aggregate(stats.breweryCountries, getCountry(brewery));
-  aggregate(stats.breweryStyleCounts, brewery.style);
 }
 
 function addToVenueData(checkin, stats) {
@@ -224,9 +218,8 @@ function aggregateBreweryList(breweryRatingList, checkin) {
 
 function mapBreweryList(breweryRatingList) {
   return Object.values(breweryRatingList).map((brewery) => {
-    const numberOfRatings = brewery.rating.length;
-    brewery['average-rating'] = (brewery.rating.reduce((a, b) => parseFloat(a) + parseFloat(b), 0) / numberOfRatings).toFixed(2);
-    brewery['number-of-ratings'] = numberOfRatings;
+    brewery.average = (brewery.rating.reduce((a, b) => parseFloat(a) + parseFloat(b), 0) / brewery.rating.length).toFixed(2);
+    brewery.count = brewery.rating.length;
     brewery.rating = undefined;
     return brewery;
   });
@@ -241,11 +234,19 @@ function getCountry(brewery) {
 }
 
 function aggregate(accumulator, currentValue) {
+  if (currentValue === "")
+    return;
   if (accumulator[currentValue]) {
     accumulator[currentValue]++;
   } else {
     accumulator[currentValue] = 1;
   }
+}
+
+function aggregateRatings(accumulator, selector, value) {
+  aggregate(accumulator.count, selector);
+  accumulator.rating[selector] ? accumulator.rating[selector].push(value) : accumulator.rating[selector] = [value];
+  accumulator.total++;
 }
 
 function sort(accumulator) {
@@ -254,4 +255,12 @@ function sort(accumulator) {
 
 function sortByKey(accumulator) {
   return Object.fromEntries(Object.entries(accumulator).sort((a, b) => a[0] - b[0]));
+}
+
+function writeToFile(user, stats) {
+  const dataDir = "public/stats/data/";
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+  }
+  fs.writeFileSync(`${dataDir}${user.displayname}.json`, JSON.stringify(stats, null, 2));
 }
