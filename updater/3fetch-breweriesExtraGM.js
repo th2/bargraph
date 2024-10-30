@@ -4,7 +4,6 @@ const googlemapskey = fs.readFileSync("data/googlemaps.key", "utf8").trim();
 const queryUrl = `https://maps.googleapis.com/maps/api/geocode/json?key=${googlemapskey}&address=`;
 
 module.exports.run = (callback) => {
-  console.log(googlemapskey);
   const breweries = require("../data/breweries.json");
   const breweriesToProcess = breweries.filter((brewery) => brewery.location === undefined && brewery.address !== undefined);
   

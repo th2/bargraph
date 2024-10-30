@@ -140,6 +140,7 @@ function generateStats(user) {
   stats.venueCountries = sort(stats.venueCountries);
   stats.venueCounts = sort(stats.venueCounts);
   stats.venueTypeCounts = sort(stats.venueTypeCounts);
+  stats.mapsKey = fs.readFileSync("data/googlemaps.key", "utf8").trim();
 
   fs.writeFileSync(`public/stats/data/${user.displayname}.json`, JSON.stringify(stats, null, 2));
 }
@@ -210,6 +211,7 @@ function aggregateBreweryList(breweryRatingList, checkin) {
         "global-checkins-unique": brewery.stats["checkins-unique"],
         "global-rating": brewery.stats["rating"],
         beers: brewery.stats.beers,
+        location: brewery.location,
         rating: [checkin.rating]
       };
     }
