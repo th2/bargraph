@@ -142,7 +142,11 @@ function generateStats(user) {
   stats.venueTypeCounts = sort(stats.venueTypeCounts);
   stats.mapsKey = fs.readFileSync("data/googlemaps.key", "utf8").trim();
 
-  fs.writeFileSync(`public/stats/data/${user.displayname}.json`, JSON.stringify(stats, null, 2));
+  const dataDir = "public/stats/data/";
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+  }
+  fs.writeFileSync(`${dataDir}${user.displayname}.json`, JSON.stringify(stats, null, 2));
 }
 
 function getAbv(beer) {
